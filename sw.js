@@ -1,5 +1,5 @@
 // Cambia VERSION cada vez que subas cambios grandes para forzar la limpieza de caché.
-const VERSION = 'midinero-v2.0.0';
+const VERSION = 'midinero-v2.1.1';
 const CORE = ['./', './index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png'];
 const CDN = [
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js',
