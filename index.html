@@ -123,6 +123,8 @@ button { cursor: pointer; border: none; background: none; }
 .hero-amount { font-size: 46px; font-weight: 800; letter-spacing: -.04em; line-height: 1.05; margin-bottom: 18px; white-space: nowrap; }
 .hero-amount .cur { font-size: 22px; font-weight: 700; opacity: .8; margin-right: 6px; letter-spacing: 0; }
 .hero-amount .dec { font-size: 24px; opacity: .65; letter-spacing: -.02em; }
+.hero-free { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.75); margin: -8px 0 16px; display: flex; align-items: center; gap: 6px; }
+.hero-free b { color: #fff; font-weight: 800; }
 .hero-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .hero-stat { background: rgba(5,7,13,.28); border: 1px solid rgba(255,255,255,.1); border-radius: 16px; padding: 10px 12px; }
 .hero-stat-label { font-size: 11px; color: rgba(255,255,255,.7); display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
@@ -265,6 +267,7 @@ body.one-acc .row2:has(> .acc-field) { grid-template-columns: 1fr; }
 .amount-input::placeholder { color: var(--dim); }
 
 .field { margin-bottom: 14px; }
+.seg.small button { font-size: 12.5px; padding: 9px 6px; }
 .label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin: 0 0 7px 2px; }
 .input, .select {
   width: 100%; height: 50px; padding: 0 15px; border-radius: 15px; font-size: 15px;
@@ -457,6 +460,7 @@ body.hide .amt { filter: blur(9px); user-select: none; }
           <span class="hero-label" id="hero-label">Balance total</span>
         </div>
         <div class="hero-amount amt" id="hero-amount"></div>
+        <div class="hero-free amt" id="hero-free" style="display:none"></div>
         <div class="hero-row">
           <div class="hero-stat">
             <div class="hero-stat-label"><i class="dot inc"></i>Ingresos del mes</div>
@@ -474,7 +478,7 @@ body.hide .amt { filter: blur(9px); user-select: none; }
         <button class="qa exp" onclick="abrirMv(null,'gasto')"><span class="qa-ic" data-ic="minus"></span>Gasto</button>
         <button class="qa qa-loan" onclick="abrirNuevoPrestamo('presto')"><span class="qa-ic" data-ic="prestamo"></span>Prestar</button>
         <button class="qa qa-debt" onclick="abrirNuevoPrestamo('debo')"><span class="qa-ic" data-ic="cobro"></span>Debo</button>
-        <button class="qa tr" data-multi onclick="abrirTransfer()"><span class="qa-ic" data-ic="transfer"></span>Transferir</button>
+        <button class="qa tr" data-multi id="qa-tr" onclick="accionTransfer()"><span class="qa-ic" data-ic="card"></span><span id="qa-tr-label">Pagar tarjeta</span></button>
       </div>
 
       <button class="limit glass" id="limit-card" onclick="abrirLimite()"></button>
@@ -594,7 +598,7 @@ body.hide .amt { filter: blur(9px); user-select: none; }
 <div class="overlay" id="sh-tr">
   <div class="sheet">
     <div class="handle"></div>
-    <div class="sheet-head"><span class="sheet-title">Transferir entre cuentas</span><button class="sheet-x" onclick="closeSheet()" data-ic="x"></button></div>
+    <div class="sheet-head"><span class="sheet-title" id="tr-title">Transferir entre cuentas</span><button class="sheet-x" onclick="closeSheet()" data-ic="x"></button></div>
     <div class="amount-wrap"><span>S/</span><input class="amount-input" id="tr-monto" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
     <div class="row2">
       <div class="field"><label class="label">Desde</label><select class="select" id="tr-from"></select></div>
@@ -604,8 +608,8 @@ body.hide .amt { filter: blur(9px); user-select: none; }
       <div class="field"><label class="label">Fecha</label><input class="input" type="date" id="tr-fecha"></div>
       <div class="field"><label class="label">Nota</label><input class="input" id="tr-nota" placeholder="Opcional" maxlength="60"></div>
     </div>
-    <p class="hint">Una transferencia mueve plata entre tus cuentas, así que no cambia tu balance total.</p>
-    <button class="btn btn-primary" onclick="guardarTransfer()">Transferir</button>
+    <p class="hint" id="tr-hint">Una transferencia mueve plata entre tus cuentas, así que no cambia tu balance total.</p>
+    <button class="btn btn-primary" id="tr-btn" onclick="guardarTransfer()">Transferir</button>
   </div>
 </div>
 
@@ -622,6 +626,8 @@ body.hide .amt { filter: blur(9px); user-select: none; }
       <div class="field"><label class="label">Fecha</label><input class="input" type="date" id="ln-fecha"></div>
     </div>
     <div class="field"><label class="label">Nota (opcional)</label><input class="input" id="ln-nota" placeholder="Ej: para el pasaje, devuelve a fin de mes" maxlength="80"></div>
+    <label class="label">¿Cómo afecta tu balance?</label>
+    <div class="seg small" id="ln-modo"><button data-m="nuevo"></button><button data-m="previo"></button></div>
     <p class="hint" id="ln-hint"></p>
     <button class="btn btn-primary" id="ln-btn" onclick="guardarPrestamo()">Registrar préstamo</button>
   </div>
@@ -662,7 +668,7 @@ body.hide .amt { filter: blur(9px); user-select: none; }
     <div class="handle"></div>
     <div class="sheet-head"><span class="sheet-title">Ajustes</span><button class="sheet-x" onclick="closeSheet()" data-ic="x"></button></div>
     <div class="set-list glass" id="settings-list"></div>
-    <div class="signature">Mi Dinero v2.1 · made by @not.andre16</div>
+    <div class="signature">Mi Dinero v2.2 · made by @not.andre16</div>
     <input type="file" id="import-file" accept="application/json,.json" hidden onchange="importarBackup(event)">
   </div>
 </div>
@@ -731,6 +737,7 @@ const P = {
   calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
   trend:'<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
   alert:'<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  card:'<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/><line x1="5" y1="15" x2="9" y2="15"/>',
   receipt:'<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/>',
   // categorías
   comida:'<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
@@ -783,9 +790,13 @@ const CATS_ESP = [
 const ALL_CATS = [...CATS_GASTO, ...CATS_INGRESO, ...CATS_ESP];
 const getCat = id => ALL_CATS.find(c => c.id === id) || CATS_GASTO[8];
 // Si algún día usas más cuentas, agrégalas aquí y reaparecen las pestañas y las transferencias.
+// credito: true = tarjeta de crédito (empieza en 0, los gastos la ponen en negativo y se paga con una transferencia)
 const ACCOUNTS = [
-  { id:'bcp', label:'BCP' },
+  { id:'bcp',     label:'BCP' },
+  { id:'tarjeta', label:'Tarjeta BCP', credito: true },
 ];
+const TARJETA = ACCOUNTS.find(a => a.credito);
+const isCredito = id => !!(ACCOUNTS.find(a => a.id === id) || {}).credito;
 const MULTI = ACCOUNTS.length > 1;
 const accTxt = id => MULTI ? ' · ' + accLabel(id) : '';
 const accLabel = id => (ACCOUNTS.find(a => a.id === id) || {}).label || id || '';
@@ -1018,7 +1029,19 @@ function renderInicio() {
   const bal = balance(cuentaSel);
   const [ent, dec] = NF.format(Math.abs(bal)).split('.');
   $('#hero-amount').innerHTML = `<span class="cur">${bal < 0 ? '−' : ''}S/</span>${ent}<span class="dec">.${dec}</span>`;
-  $('#hero-label').textContent = cuentaSel === 'todas' ? 'Balance total' : 'Balance · ' + accLabel(cuentaSel);
+  $('#hero-label').textContent = cuentaSel === 'todas' ? 'Balance total'
+    : isCredito(cuentaSel) ? (bal < 0 ? 'Deuda de la ' : 'Saldo de la ') + accLabel(cuentaSel).toLowerCase().replace('bcp', 'BCP')
+    : 'Balance · ' + accLabel(cuentaSel);
+  const deb = debes(), free = $('#hero-free');
+  if (cuentaSel === 'todas' && deb > 0) {
+    free.style.display = '';
+    free.innerHTML = `Libre después de deudas: <b>${fmtS(r2(bal - deb))}</b>`;
+  } else free.style.display = 'none';
+  if (TARJETA) {
+    const dt = -balance(TARJETA.id);
+    $('#qa-tr-label').textContent = 'Pagar tarjeta';
+    $('#qa-tr').title = dt > 0 ? `Debes ${fmt(dt)} en la tarjeta` : 'Tarjeta sin deuda';
+  } else $('#qa-tr-label').textContent = 'Transferir';
 
   const mes = enRango(mvsDeCuenta(cuentaSel).filter(isNormal), rango('mes'));
   $('#m-inc').textContent = fmt(sumTipo(mes, 'ingreso'));
@@ -1172,10 +1195,25 @@ function tapMv(id) {
 }
 
 /* ═════════ TRANSFERENCIAS ═════════ */
-function abrirTransfer() {
-  fillCuentas($('#tr-from'), cuentaSel !== 'todas' ? cuentaSel : 'banco');
-  fillCuentas($('#tr-to'), $('#tr-from').value === 'efectivo' ? 'banco' : 'efectivo');
-  $('#tr-monto').value = ''; $('#tr-nota').value = '';
+function accionTransfer() { TARJETA ? abrirPagoTarjeta() : abrirTransfer(); }
+function abrirPagoTarjeta() {
+  const deuda = Math.max(0, -balance(TARJETA.id));
+  const origen = ACCOUNTS.find(a => !a.credito);
+  abrirTransfer(origen.id, TARJETA.id, deuda || '');
+  $('#tr-title').textContent = 'Pagar tarjeta';
+  $('#tr-btn').textContent = 'Pagar tarjeta';
+  $('#tr-hint').textContent = deuda > 0
+    ? `Debes ${fmt(deuda)} en la tarjeta. Pagarla no cambia tu balance total: el gasto ya se contó cuando compraste.`
+    : 'Tu tarjeta no tiene deuda ahora mismo.';
+}
+function abrirTransfer(from, to, monto) {
+  const ids = ACCOUNTS.map(a => a.id);
+  fillCuentas($('#tr-from'), from || (cuentaSel !== 'todas' ? cuentaSel : ids[0]));
+  fillCuentas($('#tr-to'), to || ids.find(i => i !== $('#tr-from').value));
+  $('#tr-title').textContent = 'Transferir entre cuentas';
+  $('#tr-btn').textContent = 'Transferir';
+  $('#tr-hint').textContent = 'Una transferencia mueve plata entre tus cuentas, así que no cambia tu balance total.';
+  $('#tr-monto').value = monto || ''; $('#tr-nota').value = '';
   $('#tr-fecha').value = todayISO(); $('#tr-fecha').max = todayISO();
   openSheet('sh-tr');
   setTimeout(() => $('#tr-monto').focus(), 320);
@@ -1186,12 +1224,12 @@ function guardarTransfer() {
   if (from === to) return toast('Elige dos cuentas distintas');
   const fecha = fechaDesdeInput($('#tr-fecha').value);
   movimientos.unshift({ id: uid(), tipo:'transfer', kind:'transfer', cat:'transfer', monto, cuenta: from, destino: to,
-    desc: 'Transferencia', nota: $('#tr-nota').value.trim(), fecha, ts: new Date(fecha).getTime() });
-  save(); closeSheet(); actualizar(); toast('Transferencia hecha');
+    desc: isCredito(to) ? 'Pago de tarjeta' : 'Transferencia', nota: $('#tr-nota').value.trim(), fecha, ts: new Date(fecha).getTime() });
+  save(); closeSheet(); actualizar(); toast(isCredito(to) ? 'Pago de tarjeta registrado' : 'Transferencia hecha');
 }
 function abrirDetalleTransfer(m) {
   $('#detail-body').innerHTML = `<div class="handle"></div>
-    <div class="sheet-head"><span class="sheet-title">Transferencia</span><button class="sheet-x" onclick="closeSheet()">${ic('x')}</button></div>
+    <div class="sheet-head"><span class="sheet-title">${esc(m.desc)}</span><button class="sheet-x" onclick="closeSheet()">${ic('x')}</button></div>
     <div class="box glass">
       <div class="kv"><span>Monto</span><b class="amt">${fmt(m.monto)}</b></div>
       <div class="kv"><span>Desde</span><b>${esc(accLabel(m.cuenta))}</b></div>
@@ -1212,6 +1250,22 @@ function eliminarSimple(id) {
 /* ═════════ PRÉSTAMOS Y DEUDAS ═════════ */
 let loanTab = 'presto';
 let lnDir = 'presto';
+let lnModo = 'nuevo';
+const MODO = {
+  presto: { nuevo: ['Lo presto ahora', 'Se descuenta de tu balance ahora. Cada pago que te hagan vuelve a entrar como ingreso.'],
+            previo: ['Ya salió de mi saldo', 'No cambia tu balance (esa plata ya no está en tu cuenta). Cada pago que te hagan entrará como ingreso.'] },
+  debo:   { nuevo: ['Me lo acaban de dar', 'Se suma a tu balance ahora. Cada pago que hagas para devolverlo sale como gasto.'],
+            previo: ['Ya está en mi saldo', 'No cambia tu balance porque esa plata ya está en tu cuenta. Cuando la devuelvas, saldrá como gasto.'] },
+};
+function setLnModo(m) {
+  lnModo = m;
+  $$('#ln-modo button').forEach(b => { b.textContent = MODO[lnDir][b.dataset.m][0]; b.className = b.dataset.m === m ? 'on' : ''; });
+  $('#ln-hint').textContent = MODO[lnDir][m][1];
+  const f = $('#ln-cuenta').closest('.field');
+  f.style.display = m === 'previo' ? 'none' : '';
+  f.parentElement.style.gridTemplateColumns = m === 'previo' ? '1fr' : '';
+}
+$('#ln-modo').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { haptic(); setLnModo(b.dataset.m); } });
 const TXT = {
   presto: {
     titulo: 'Nuevo préstamo', quien: '¿A quién le prestas?', cuenta: 'Sale de', btn: 'Registrar préstamo',
@@ -1250,12 +1304,13 @@ function setLnDir(d) {
   $('#ln-title').textContent = t.titulo;
   $('#ln-quien').textContent = t.quien;
   $('#ln-cuenta-label').textContent = t.cuenta;
-  $('#ln-hint').textContent = t.hint;
   $('#ln-btn').textContent = t.btn;
+  setLnModo(lnModo);
 }
 $('#ln-seg').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { haptic(); setLnDir(b.dataset.d); } });
 
 function abrirNuevoPrestamo(dir) {
+  lnModo = 'nuevo';
   setLnDir(dir || loanTab);
   $('#ln-monto').value = ''; $('#ln-persona').value = ''; $('#ln-nota').value = '';
   $('#ln-fecha').value = todayISO(); $('#ln-fecha').max = todayISO();
@@ -1272,8 +1327,9 @@ function guardarPrestamo() {
   const fecha = fechaDesdeInput($('#ln-fecha').value);
   const out = lnDir === 'presto';
   const p = { id: uid(), dir: lnDir, persona, monto, fecha, nota: $('#ln-nota').value.trim(), cuenta: $('#ln-cuenta').value, cerrado: false };
+  if (lnModo === 'previo') p.previo = true;
   prestamos.unshift(p);
-  movimientos.unshift({ id: uid(), tipo: out ? 'gasto' : 'ingreso', kind: out ? 'prestamo' : 'deuda', ref: p.id,
+  if (!p.previo) movimientos.unshift({ id: uid(), tipo: out ? 'gasto' : 'ingreso', kind: out ? 'prestamo' : 'deuda', ref: p.id,
     cat: out ? 'prestamo' : 'deuda', monto, cuenta: p.cuenta,
     desc: out ? `Préstamo a ${persona}` : `${persona} te prestó`, nota: p.nota, fecha, ts: new Date(fecha).getTime() });
   loanTab = lnDir;
@@ -1339,7 +1395,7 @@ function renderLoanDetail(p) {
     </div>
     <div class="box glass">
       <div class="kv"><span>${t.fechaLbl}</span><b>${fechaCorta(p.fecha)}</b></div>
-      <div class="kv acc-field"><span>${t.cuenta}</span><b>${esc(accLabel(p.cuenta))}</b></div>
+      ${p.previo ? `<div class="kv"><span>Al registrarlo</span><b>No movió tu balance</b></div>` : `<div class="kv acc-field"><span>${t.cuenta}</span><b>${esc(accLabel(p.cuenta))}</b></div>`}
       ${p.nota ? `<div class="kv"><span>Nota</span><b>${esc(p.nota)}</b></div>` : ''}
     </div>
     ${est === 'activo' ? `
@@ -1360,9 +1416,20 @@ function renderLoanDetail(p) {
       </div>`).join('')}</div>` : ''}
     ${est === 'activo' ? `<button class="btn btn-ghost" onclick="cerrarPrestamo('${esc(p.id)}')">${t.cerrar}</button>`
       : est === 'cerrado' ? `<button class="btn btn-ghost" onclick="reabrirPrestamo('${esc(p.id)}')">Reabrir</button>` : ''}
+    ${!p.previo ? `<button class="btn btn-ghost" onclick="marcarPrevio('${esc(p.id)}')">${debt ? 'Esta plata ya estaba en mi saldo' : 'Esto ya había salido de mi saldo'}</button>` : ''}
     <button class="btn btn-danger" onclick="eliminarPrestamo('${esc(p.id)}')">${ic('trash')}Eliminar ${debt ? 'deuda' : 'préstamo'}</button>`;
   const sel = $('#pay-cuenta');
   if (sel) fillCuentas(sel, p.cuenta);
+}
+function marcarPrevio(id) {
+  const p = prestamos.find(x => same(x.id, id)), debt = dirDe(p) === 'debo';
+  confirmar(debt ? '¿Ya estaba en tu saldo?' : '¿Ya había salido de tu saldo?',
+    debt ? `Se quita el ingreso de ${fmt(p.monto)} que se sumó al registrar la deuda, para que no se cuente dos veces. La deuda sigue pendiente.`
+         : `Se quita el gasto de ${fmt(p.monto)} que se restó al registrar el préstamo. Te siguen debiendo lo mismo.`,
+    'Sí, corregir', () => {
+      movimientos = movimientos.filter(m => !(m.kind === (debt ? 'deuda' : 'prestamo') && same(m.ref, p.id)));
+      p.previo = true; save(); actualizar(); renderLoanDetail(p); toast('Balance corregido');
+    });
 }
 function agregarPago(p, monto, cuenta, fecha) {
   const debt = dirDe(p) === 'debo';
